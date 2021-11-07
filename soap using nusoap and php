@@ -1,0 +1,54 @@
+<?php
+/*This file calls server.php */ 
+
+//include nusoap lib
+require 'lib/nusoap.php';
+//Create an instance for nusoap client, pass url where server.php is stored, it will generate the wsdl file and consume data passed below 
+$client = new nusoap_client("https://www.ignitech.co.ke/nusoap/server.php?wsdl");
+
+   $name = "Jonathan Mutisya";    
+   //call hello_user function registered in server.php 
+   $response = $client->call('hello_user',array("name"=>$name));
+
+   $data1=230;
+   $data2=321;
+   //call add_number function registered in server.php
+   $response2 = $client->call('add_number',array("data1"=>$data1,"data2"=>$data2));
+       echo "$response<br>";
+       echo "$response2";
+  ?>
+<?php
+/*Once a call is made to this file it generates the wsdl xml file containing data passed from client.php
+if you want to see the generated xml file... call this file directly, and click wsdl
+*/
+require 'lib/nusoap.php';
+
+$server = new nusoap_server(); // Create a instance for nusoap server
+
+$server->configureWSDL("Soap Demo","urn:soapdemo"); // service name,Uniform Resource Name
+//xsd XML Schema Definition
+//register hello_user function
+$server->register(
+   "hello_user", // name of function
+   array("name"=>"xsd:string"),  // inputs
+   array("return"=>"xsd:string")   // outputs
+);
+//register functions
+//function with one parameter
+function hello_user($name){
+   return "Hello $name";
+}
+//register add_number function
+$server->register(
+   "add_number", // name of function
+   array("data1"=>"xsd:int","data2"=>"xsd:int"),  // inputs
+   array("return"=>"xsd:int")   // outputs
+);
+
+//function with two params
+function add_number($data1,$data2){
+   return $data1+$data2;
+}
+
+$server->service(file_get_contents("php://input"));
+?>
